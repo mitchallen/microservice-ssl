@@ -13,5 +13,13 @@
     "url": "https://bitbucket.org/mitchallen/microservice-ssl.git"
   },
   "author": "Mitch Allen <npm@mitchallen.com> (http://mitchallen.com)",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "@mitchallen/microservice-core": "^0.2.2",
+    "@mitchallen/microservice-rights": "^0.1.1",
+    "@mitchallen/microservice-token": "^0.1.1",
+    "jwt-simple": "^0.5.0",
+    "should": "^10.0.0",
+    "supertest": "^1.2.0"
+  }
 }
