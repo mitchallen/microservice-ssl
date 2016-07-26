@@ -10,7 +10,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://bitbucket.org/mitchallen/microservice-sll.git"
+    "url": "https://bitbucket.org/mitchallen/microservice-ssl.git"
   },
   "author": "Mitch Allen <npm@mitchallen.com> (http://mitchallen.com)",
   "license": "ISC"
