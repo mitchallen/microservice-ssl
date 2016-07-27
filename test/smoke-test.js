@@ -9,11 +9,13 @@
 var request = require('supertest'),
     should = require('should'),
     jwt = require('jwt-simple'),
+    config = require('./config.js'),
     testName = require("../package").name,
     testVersion = require("../package").version,
     verbose = process.env.SERVICE_VERBOSE || false,
-    testPort = process.env.TEST_SERVICE_PORT || 8100,
-    testHost = "http://localhost:" + testPort;
+    localPort = config.port,        
+    testHost = config.host.url,
+    sslHost = config.host.ssl;
 
 let rightsWare = require('@mitchallen/microservice-rights');
 let sslWare = require('../index');
@@ -41,9 +43,13 @@ var server = null;
 
 function checkAccess( ops ) {
 
+        let host = ops.host;
+
+        // console.log(host);
+
         let testAccess = ops.access  // Access needed to acccess URL
         let testRole = ops.role;    // User role.
-        let expectedStatus = ops.sslStatus;
+        let expectedStatus = ops.expectedStatus;
         let done = ops.done;
         let sslStatus = ops.sslStatus;
 
@@ -77,7 +83,7 @@ function checkAccess( ops ) {
                 name: testName,
                 version: testVersion,
                 verbose: verbose,
-                port: testPort,
+                port: localPort,
                 apiVersion: prefix,
                 method: function (info) {
                     var router = info.router;
@@ -111,7 +117,7 @@ function checkAccess( ops ) {
         should.exist(server);
         
         var testUrl =  prefix + path;
-        request(testHost)
+        request(host)
             .get(testUrl)
             .set('x-auth', jwt.encode( testData, secret))
             .set('Content-Type', 'application/json')
@@ -119,240 +125,116 @@ function checkAccess( ops ) {
             .end(function (err, res){
                 should.not.exist(err);
                 should.exist(res.body);
+                if( expectedStatus == 302 ) {
+                    should.not.exist(err);
+                };
                 if( expectedStatus == 200 ) {
                     should.exist(res.body.type);
                     res.body.type.should.eql(dataType);
                     should.exist(res.body.status);
                     res.body.status.should.eql(dataStatus);
-                }
+                };
                 done();
             });
 }
 
-describe('microservice ssl smoke test', function() {
+describe('microservice ssl service', function() {
 
     afterEach(function(done) {
         return server.close(done);
     });
 
-
     // Admin Role
 
-    it('should return 302 redirect for admin accessing admin url', function(done) {
+    it('should return 404 not-found for admin accessing non-ssl url', function(done) {
         checkAccess( {
             role: "admin", 
             access: "admin", 
-            sslStatus: 302,
+            host: testHost, // non-ssl
+            sslStatus: 404, // if this is non-ssl, return 404
+            expectedStatus: 404,
             done: done
         });
     });
 
-    it('should return 404 not-found for admin accessing admin url', function(done) {
+    it('should return 302 redirect for admin accessing non-ssl url', function(done) {
+        checkAccess( {
+            role: "admin", 
+            access: "admin",
+            host: testHost, // non-ssl 
+            sslStatus: 302, // if this is non-ssl, return 302 (Moved)
+            expectedStatus: 302,
+            done: done
+        });
+    });
+
+    it('should return 200 OK for admin accessing ssl url if non-ssl returns 404', function(done) {
         checkAccess( {
             role: "admin", 
             access: "admin", 
-            sslStatus: 404,
+            host: sslHost, // SSL
+            sslStatus: 404, // if this is non-ssl, return 404
+            expectedStatus: 200,
             done: done
         });
     });
 
-    it('should return 404 not-found for admin role to access user url', function(done) {
+    it('should return 200 OK for admin accessing ssl url if non-ssl returns 302', function(done) {
         checkAccess( {
             role: "admin", 
-            access: "user", 
-            status: 404,
-            done: done
-        });
-    });
-
-    it('should return 404 not-found for admin role to access wildcard url', function(done) {
-        checkAccess( {
-            role: "admin", 
-            access: "*", 
-            status: 404,
-            done: done
-        });
-    });
-
-    it('should not allow admin role to access none access url', function(done) {
-        checkAccess( {
-            role: "admin", 
-            access: "none", 
-            status: 401,
-            done: done
-        });
-    });
-
-    it('should not allow admin role to access unknown access url', function(done) {
-        checkAccess( {
-            role: "admin", 
-            access: "unknown", 
-            status: 401,
+            access: "admin", 
+            host: sslHost, // SSL
+            sslStatus: 302, // if this is non-ssl, return 302 (Moved)
+            expectedStatus: 200,
             done: done
         });
     });
 
     // User Role
 
-    it('should not allow user role to access admin url', function(done) {
+    it('should return 404 not-found for user accessing non-ssl admin url', function(done) {
         checkAccess( {
             role: "user", 
             access: "admin", 
-            status: 401,    // Unauthorized
+            host: testHost, // non-ssl
+            sslStatus: 404, // if this is non-ssl, return 404
+            expectedStatus: 404,
             done: done
         });
     });
 
-    it('should return 404 not-found user role to access user url', function(done) {
+    it('should return 302 redirect for user accessing non-ssl admin url', function(done) {
         checkAccess( {
             role: "user", 
-            access: "user", 
-            status: 404,
+            access: "admin",
+            host: testHost, // non-ssl 
+            sslStatus: 302, // if this is non-ssl, return 302 (Moved)
+            expectedStatus: 302,
             done: done
         });
     });
 
-    it('should return 404 not-found user role to access wildcard url', function(done) {
+    it('should return 401 Unauthorized for user accessing ssl admin url if non-ssl url returns 404', function(done) {
         checkAccess( {
             role: "user", 
-            access: "*", 
-            status: 404,
-            done: done
-        });
-    });
-
-    it('should not allow user role to access none access url', function(done) {
-        checkAccess( {
-            role: "user", 
-            access: "none", 
-            status: 401,
-            done: done
-        });
-    });
-
-    it('should not allow user role to access unknown access url', function(done) {
-        checkAccess( {
-            role: "user", 
-            access: "unknown", 
-            status: 401,
-            done: done
-        });
-    });
-
-    // Wildcard Role
-
-    it('should not allow wildcard role to access admin url', function(done) {
-        checkAccess( {
-            role: "*", 
             access: "admin", 
-            status: 401,    // Unauthorized
+            host: sslHost, // SSL
+            sslStatus: 404, // if this is non-ssl, return 404
+            expectedStatus: 401,    // Unauthorized
             done: done
         });
     });
 
-    it('should not allow wildcard role to access user url', function(done) {
+    it('should return 401 Unauthorized for user accessing admin ssl url if non-ssl returns 302', function(done) {
         checkAccess( {
-            role: "*", 
-            access: "user", 
-            status: 401,    // Unauthorized
-            done: done
-        });
-    });
-
-    it('should return 404 not-found wildcard role to access wilccard url', function(done) {
-        checkAccess( {
-            role: "*", 
-            access: "*", 
-            status: 404,  
-            done: done
-        });
-    });
-
-    it('should not allow wildcard role to access none access url', function(done) {
-        checkAccess( {
-            role: "*", 
-            access: "none", 
-            status: 401,
-            done: done
-        });
-    });
-
-    it('should not allow wild card role to access unknown access url', function(done) {
-        checkAccess( {
-            role: "*", 
-            access: "unknown", 
-            status: 401,
-            done: done
-        });
-    });
-
-    // None Role
-
-    it('should not allow none role to access admin url', function(done) {
-        checkAccess( {
-            role: "none", 
+            role: "user", 
             access: "admin", 
-            status: 401,
+            host: sslHost, // SSL
+            sslStatus: 302, // if this is non-ssl, return 302 (Moved)
+            expectedStatus: 401,    // Unauthorized
             done: done
         });
     });
 
-    it('should not allow none role to access user url', function(done) {
-        checkAccess( {
-            role: "none", 
-            access: "user", 
-            status: 401,
-            done: done
-        });
-    });
-
-    it('should return 404 not-found none role to access wildcard url', function(done) {
-        checkAccess( {
-            role: "none", 
-            access: "*", 
-            status: 404,
-            done: done
-        });
-    });
-
-
-    // Unknown Role
-
-    it('should not allow unknown role to access admin url', function(done) {
-        checkAccess( {
-            role: "unknown", 
-            access: "admin", 
-            status: 401,
-            done: done
-        });
-    });
-
-    it('should not allow unknown role to access user url', function(done) {
-        checkAccess( {
-            role: "unknown", 
-            access: "user", 
-            status: 401,
-            done: done
-        });
-    });
-
-    it('should not allow none role to access user url', function(done) {
-        checkAccess( {
-            role: "none", 
-            access: "user", 
-            status: 401,
-            done: done
-        });
-    });
-
-    it('should return 404 not-found  unknown role to access wildcard url', function(done) {
-        // Because wildcard access is public, even unknown should have access.
-        checkAccess( {
-            role: "unknown", 
-            access: "*", 
-            status: 404,
-            done: done
-        });
-    });
 
 });
