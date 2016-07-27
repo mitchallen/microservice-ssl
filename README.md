@@ -24,6 +24,57 @@ You must use __npm__ __2.7.0__ or higher because of the scoped package name.
 
 ## Usage
 
+This module gives you the ability to decided how non-SSL requests are handled.
+
+* __404 - NOT FOUND__: if someone tries to access an SSL URL with a non-SSL protocal (__http__).
+* __302 - MOVED__: redirect them to the SSL (https) equivalent. 
+
+        let express = require('express');
+        let parser = require("body-parser");
+        let app = express();
+        let router = new express.Router();
+        let sslWare = require('@mitchallen/microservice-ssl');
+        let rightsWare = require('@mitchallen/microservice-rights');
+        
+        let table = {
+            roles: [ "none", "admin", "user", "public" ],
+            rights: {
+            // required rights : list of who can access links marked with required rights]
+            // link marked admin can only be accessed by admin
+            "admin"  : [ "admin" ], 
+            // link marked user can be accessed by admin and user
+            "user"   : [ "admin", "user" ], 
+            // link marked public can be accessed by all
+             "*"      : [ "admin", "user", "*" ]    
+            }
+        };
+
+      	var authorization = {
+            access: "admin",	// requires role access
+            table: table
+        };
+
+		var prefix = "/v1";
+
+        var sslOptions = {
+            sslStatus: 404,	// return not found for non-SSLL requests
+            apiVersion: "/v1"	
+        };
+
+        router.use(tokenHandler);
+        router.get( path,         
+            sslWare.isSSL( sslOptions ),
+            rightsWare.isAuthorized( authorization ),
+            function (req, res) {
+                var data = {
+                    type: dataType,
+                    status: dataStatus,
+                };
+                res.json(data);
+            }); 
+            
+        app.use( prefix, router );
+
 ### SSL
     
 A value of 404 means that if a user attempts to browse to the Non-SSL version of the URL a 404 (Not Found) status will be returned.
@@ -71,6 +122,7 @@ Source the changes:
 
     $ source ~/.bash_profile
     
+__Note:__ if you toggle back to an already open terminal window these values may not yet be available. You can always run the __source__ command again in that window.
 
 * * *
 
