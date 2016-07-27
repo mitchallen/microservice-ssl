@@ -13,7 +13,7 @@ let bar = Array(50).join('-');
 
 let host = {
     // Tunnled URLS may have their own port (or none at all)
-    url: process.env.TEST_HOST || "http://localhost:8004" ,
+    url: process.env.TEST_HOST || "http://localhost:8001" ,
     ssl: process.env.TEST_SSL || null
 };
 

@@ -24,12 +24,12 @@ You must use __npm__ __2.7.0__ or higher because of the scoped package name.
 
 ## Usage
 
-This module gives you the ability to decided how non-SSL requests are handled by an __ExpressJS__ based app or microservice.
+This module gives you the ability to decide how non-SSL requests are handled by an __ExpressJS__ based app or microservice.
 
 * __404 - NOT FOUND__: if someone tries to access an SSL URL with a non-SSL protocal (__http__).
-* __302 - MOVED__: redirect them to the SSL (https) equivalent. 
+* __302 - MOVED__: redirect them to the SSL (__https__) equivalent. 
 
-When used in combination with [@mitchallen/microservice-rights](https://www.npmjs.com/package/@mitchallen/microservice-rights) those without permission will get either a __401__ (Unauthorized) for secure attempts and __404__ (not found) for non-secure attempts.
+When used in combination with [@mitchallen/microservice-rights](https://www.npmjs.com/package/@mitchallen/microservice-rights) those without permission will get either a __401__ (unauthorized) for secure attempts and __404__ (not found) for non-secure attempts.
 
 ### Step 1: Setup npm dependencies
 
@@ -77,7 +77,7 @@ If your service is running on port 8100 locally, you can then access it via:
 
 Note the URLs that are displayed (may be __*.io__ instead of __*.com__).
 
-### Set environment vairables
+### Set environment variables
 
 Using a text editor, append this to the bottom of __~/.bash_profile__
 
@@ -124,7 +124,7 @@ Create a file called __key-master.js__, add the following and save it:
 
     let host = {
         // Tunnled URLS may have their own port (or none at all)
-        url: process.env.TEST_HOST || "http://localhost:8004" ,
+        url: process.env.TEST_HOST || "http://localhost:8100" ,
         ssl: process.env.TEST_SSL || null
     };
 
@@ -206,9 +206,9 @@ For the admin role you should get a HTTP __200 OK__ response like this:
     Content-Type: application/json; charset=utf-8
     Content-Length: 44
     
-But if you edit the __curl__ command and change __https__ to just __http__ you should get a 404.
+But if you edit the __curl__ command and change __https__ to just __http__ you should get a __404__.
 
-If you edit the example index.js file and changed 404 to 302, then make a request using non-SSL you should get a 302 response that include the location of the secrure version.
+If you edit the example __index.js__ file and changed __404__ to __302__, then make a request using non-SSL you should get a __302__ response that include the location of the secrure version.
 
     HTTP/1.1 302 Found
     X-Powered-By: Express
@@ -217,7 +217,7 @@ If you edit the example index.js file and changed 404 to 302, then make a reques
     Content-Type: text/plain; charset=utf-8
     Content-Length: 63
 
-For the other roles you should get a HTTP __401 Unauthorized__ response when trying to access the secure url, or a 404 when trying to access the non-secure URL. 
+For the other roles you should get an HTTP __401__ (unauthorized) response when trying to access the secure url, or a __404__ when trying to access the non-secure URL. 
 
     HTTP/1.1 401 Unauthorized
     X-Powered-By: Express
@@ -258,6 +258,15 @@ Add unit tests for any new or changed functionality. Lint and test your code.
 * * *
 
 ## Version History
+
+#### Version 0.1.2 release notes
+
+* updated demo for port consistency
+* fixed type-os in readme
+
+#### Version 0.1.1 release notes
+
+* updated demo to use published package
 
 #### Version 0.1.0 release notes
 

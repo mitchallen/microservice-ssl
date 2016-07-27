@@ -3,9 +3,7 @@
  let secret = process.env.SECRET || "test-server"; // Don't hard code in production!
  let tokenHandler = require('@mitchallen/microservice-token')(secret);
  let rightsWare = require('@mitchallen/microservice-rights');
- // TODO - update with real package when published
- // let sslWare = require('@mitchallen/microservice-ssl');
- let sslWare = require('../../index');
+ let sslWare = require('@mitchallen/microservice-ssl');
 
  let table = {
     roles: [ "none", "admin", "user", "public" ],
