@@ -27,7 +27,16 @@ Open up a second terminal window and do the following:
 
 3. Copy and paste one of the role __curl__ commands into the terminal window and hit enter.
 
-An __https__ request should work.  An ___http__ request should return __404__ (not found).
+For the __admin__ role, an __https__ request should work.  An __http__ request should return __404__ (not found).
+
+Non-admins should get either a __401__ (unauthorized) or __404__ (not found).
+
+
+### Testing for 302 (Moved)
+
+By default, __index.js__ is setup to return a __404__ (not found) response for non-SSL requests.
+
+Edit __index.js__ and change __404__ to __302__ to test as a service that returns a __302__ (moved) for non-SSL requests.  Note the __Location__ returned in a __302__ response.
 
 ### See Project README
 
