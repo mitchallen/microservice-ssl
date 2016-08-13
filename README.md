@@ -310,6 +310,8 @@ To test, go to the root folder and type (sans __$__):
 ## Repo(s)
 
 * [bitbucket.org/mitchallen/microservice-ssl.git](https://bitbucket.org/mitchallen/microservice-ssl.git)
+* [github.com/mitchallen/microservice-ssl.git](https://github.com/mitchallen/microservice-ssl.git)
+
 
 * * *
 
